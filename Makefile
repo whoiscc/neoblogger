@@ -22,13 +22,13 @@ $(static_library): $(source_objects)
 source_deps = $(source_objects:%.o=%.d)
 include $(source_deps)
 %.d: %.c
-	$(CC) -MM -MP -MT $(<:%.c=%.o) -MF $(<:%.c=%.d) $<
+	$(CC) -MM -MP -MT '$(<:%.c=%.o) $(<:%.c=%.d)' -MF $(<:%.c=%.d) $<
 
 
 test_executables = $(core_modules:%=test_%)
 testcases: $(test_executables)
 $(test_executables): test_%: $(tests_dir)/%.c $(static_library)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I$(source_dir) -o $@ $+
+	$(CC) $(CFLAGS) -I$(source_dir) -o $@ $+
 
 
 clean:
