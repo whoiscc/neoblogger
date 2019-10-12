@@ -19,21 +19,27 @@ int main(void) {
     test_concat();
     void test_render();
     test_render();
+    void test_render2();
+    test_render2();
 
     return 0;
+}
+
+static void assert_equal(String first, String second) {
+    assert(first && second);
+    assert(first->length == second->length);
+    for (int i = 0; i < first->length; i++) {
+        assert(first->buffer[i] == second->buffer[i]);
+    }
+    free_string(first);
+    free_string(second);
 }
 
 void test_clone() {
     printf(" - clone\n");
     String cowsay = LITERAL("cowsay");
     String cowsay2 = clone_string(cowsay);
-    assert(cowsay2->buffer);
-    assert(cowsay2->length == 6);
-    for (int i = 0; i < 6; i++) {
-        assert(cowsay2->buffer[i] == cowsay->buffer[i]);
-    }
-    free_string(cowsay);
-    free_string(cowsay2);
+    assert_equal(cowsay, cowsay2);
 }
 
 void test_concat() {
@@ -42,13 +48,7 @@ void test_concat() {
     String hello_world = concat_string(hello, world);
     free_string(hello);
     free_string(world);
-    String expected = LITERAL("Hello, world!");
-    assert(hello_world->length == expected->length);
-    for (int i = 0; i < hello_world->length; i++) {
-        assert(hello_world->buffer[i] == expected->buffer[i]);
-    }
-    free_string(expected);
-    free_string(hello_world);
+    assert_equal(hello_world, LITERAL("Hello, world!"));
 }
 
 void test_render() {
@@ -58,12 +58,27 @@ void test_render() {
     String greetings = render_string(template, "NAME", name);
     free_string(template);
     free_string(name);
-    String expected = LITERAL("Hello, cowsay!");
-    assert(greetings->length == expected->length);
-    for (int i = 0; i < greetings->length; i++) {
-        assert(greetings->buffer[i] == expected->buffer[i]);
-    }
-    free_string(expected);
-    free_string(greetings);
+    assert_equal(greetings, LITERAL("Hello, cowsay!"));
+}
+
+void test_render2() {
+    printf(" - render2\n");
+    String template = LITERAL("The @@FRUIT@@ is @@COLOR@@.");
+    String fruit = LITERAL("apple"), color = LITERAL("red");
+    assert_equal(
+        render_string(template, "FRUIT", fruit), 
+        LITERAL("The apple is @@COLOR@@.")
+    );
+    assert_equal(
+        render_string(template, "COLOR", color),
+        LITERAL("The @@FRUIT@@ is red.")
+    );
+    assert_equal(
+        render_string(render_string(template, "FRUIT", fruit), "COLOR", color),
+        render_string(render_string(template, "COLOR", color), "FRUIT", fruit)
+    );
+    free_string(template);
+    free_string(fruit);
+    free_string(color);
 }
 

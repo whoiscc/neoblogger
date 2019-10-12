@@ -53,10 +53,10 @@ String clone_string(const String original) {
 
 String render_string(String template, const char *tag, String content) {
     assert(template && content);
-    char *index;
+    char *index = template->buffer;
     unsigned int tag_length;
     while(1) {
-        index = strstr(template->buffer, "@@");
+        index = strstr(index, "@@");
         assert(index);
         index += 2;  // shift @@
         char *tag_end = strstr(index, "@@");
