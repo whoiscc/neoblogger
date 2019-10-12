@@ -7,11 +7,11 @@ CFLAGS += -g
 project = neoblogger
 source_dir = Source
 tests_dir = Tests
-core_modules = render
+core_modules = render string
 modules = $(core_modules)
 
 
-all: source test
+all: source testcases
 
 
 static_library = lib$(project).a
@@ -22,9 +22,9 @@ $(static_library): $(source_objects)
 
 
 test_executables = $(core_modules:%=test_%)
-test: $(test_executables)
+testcases: $(test_executables)
 $(test_executables): test_%: $(tests_dir)/%.c $(static_library)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $+
+	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(source_dir) -o $@ $+
 
 
 clean:
