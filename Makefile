@@ -19,15 +19,20 @@ source_objects = $(modules:%=$(source_dir)/%.o)
 source: $(static_library)
 $(static_library): $(source_objects)
 	$(AR) rc $@ $+
+source_deps = $(source_objects:%.o=%.d)
+include $(source_deps)
+%.d: %.c
+	$(CC) -MM -MP -MT $(<:%.c=%.o) -MF $(<:%.c=%.d) $<
 
 
 test_executables = $(core_modules:%=test_%)
 testcases: $(test_executables)
 $(test_executables): test_%: $(tests_dir)/%.c $(static_library)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -I$(source_dir) -o $@ $+
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I$(source_dir) -o $@ $+
 
 
 clean:
 	-$(RM) $(source_objects)
+	-$(RM) $(source_deps)
 	-$(RM) $(static_library)
 	-$(RM) $(test_executables)

@@ -14,10 +14,11 @@ int main(void) {
     free_string(hello);
 
     void test_clone();
-    void test_concat();
-
     test_clone();
+    void test_concat();
     test_concat();
+    void test_render();
+    test_render();
 
     return 0;
 }
@@ -48,5 +49,21 @@ void test_concat() {
     }
     free_string(expected);
     free_string(hello_world);
+}
+
+void test_render() {
+    printf(" - render\n");
+    String template = LITERAL("Hello, @@NAME@@!");
+    String name = LITERAL("cowsay");
+    String greetings = render_string(template, "NAME", name);
+    free_string(template);
+    free_string(name);
+    String expected = LITERAL("Hello, cowsay!");
+    assert(greetings->length == expected->length);
+    for (int i = 0; i < greetings->length; i++) {
+        assert(greetings->buffer[i] == expected->buffer[i]);
+    }
+    free_string(expected);
+    free_string(greetings);
 }
 
