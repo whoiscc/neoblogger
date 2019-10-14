@@ -6,81 +6,74 @@
 #include <assert.h>
 
 
-String from_literal(const char *literal, const size_t length) {
-    char *buffer = malloc(sizeof(char) * length);
-    String string = malloc(sizeof(struct _String));
-    if (!buffer || !string) {
-        return NULL;
+String create_string(const char *data, unsigned int length) {
+    String string;
+    if (length > 0) {
+        string.buffer = malloc(sizeof(char) * length);
+        assert(string.buffer);
+        memcpy(string.buffer, data, length);
     }
-    assert(literal[length - 1] == '\0');
-    string->buffer = buffer;
-    string->length = length - 1;
-    memcpy(string->buffer, literal, string->length);
+    string.length = length;
+    string.offset = 0;
     return string;
 }
 
-void free_string(String string) {
-    free(string->buffer);
-    free(string);
-}
-
-String concat_string(const String first, const String second) {
-    assert(first && second);
-    char *buffer = malloc(sizeof(char) * (first->length + second->length));
-    String string = malloc(sizeof(struct _String));
-    if (!buffer || !string) {
-        return NULL;
+void align_string(String string) {
+    if (string.offset != 0) {
+        memmove(string.buffer, string.buffer + string.offset, string.length);
+        string.offset = 0;
     }
-    string->buffer = buffer;
-    string->length = first->length + second->length;
-    memcpy(string->buffer, first->buffer, first->length);
-    memcpy(string->buffer + first->length, second->buffer, second->length);
-    return string;
 }
 
-String clone_string(const String original) {
-    assert(original);
-    char *buffer = malloc(sizeof(char) * original->length);
-    String string = malloc(sizeof(struct _String));
-    if (!buffer || !string) {
-        return NULL;
-    }
-    string->buffer = buffer;
-    string->length = original->length;
-    memcpy(string->buffer, original->buffer, original->length);
-    return string;
+void append_string(String target, String moved_tail) {
+    align_string(target);
+    unsigned int tail_offset = target.length;
+    target.length += moved_tail.length;
+    target.buffer = realloc(target.buffer, sizeof(char) * target.length);
+    assert(target.buffer);
+    memcpy(target.buffer + tail_offset, moved_tail.buffer + moved_tail.offset, moved_tail.length);
+    free_string(moved_tail);
 }
 
-String render_string(String template, const char *tag, String content) {
-    assert(template && content);
-    char *index = template->buffer;
-    unsigned int tag_length;
-    while(1) {
-        index = strstr(index, "@@");
-        assert(index);
-        index += 2;  // shift @@
-        char *tag_end = strstr(index, "@@");
-        assert(tag_end);
-        tag_length = tag_end - index;
-        if (strncmp(index, tag, tag_length) == 0) {
-            break;
+void normalize_range(
+    const unsigned int length, const int start, const int end,
+    unsigned int *abs_start, unsigned int *abs_end
+) {
+    *abs_start = start >= 0 ? start : length + start;
+    *abs_end = end >= 0 ? end : length + end;
+    assert(*abs_start < *abs_end && *abs_end <= length);
+}   
+
+String slice_string(String full, int start, int end) {
+    unsigned int abs_start, abs_end;
+    normalize_range(full.length, start, end, &abs_start, &abs_end);
+    return create_string(full.buffer + abs_start, abs_end - abs_start);
+}
+
+void cut_string(String *full, int start, int end) {
+    unsigned int abs_start, abs_end;
+    normalize_range(full->length, start, end, &abs_start, &abs_end);
+    full->offset = abs_start;
+    full->length = abs_end - abs_start;
+}
+
+int search_string(const String haystack, const String needle) {
+    for (int i = 0; i <= haystack.length - needle.length; i++) {
+        if (strncmp(haystack.buffer + haystack.offset + i, needle.buffer + needle.offset, needle.length) == 0) {
+            return i;
         }
-        index = tag_end + 2;  // shift end @@
     }
-    unsigned int length = template->length + content->length - tag_length - 4;
-    char *buffer = malloc(sizeof(char) * length);
-    String string = malloc(sizeof(struct _String));
-    if (!buffer || !string) {
-        return NULL;
-    }
-    string->length = length;
-    string->buffer = buffer;
-    // content offset in new string
-    unsigned int content_offset = index - 2 - template->buffer;
-    // rest part of template offset in template string
-    unsigned int rest_offset = content_offset + tag_length + 4;
-    memcpy(string->buffer, template->buffer, content_offset);
-    memcpy(string->buffer + content_offset, content->buffer, content->length);
-    memcpy(string->buffer + content_offset + content->length, template->buffer + rest_offset, template->length - rest_offset);
-    return string;
+    return -1;
 }
+
+int equal_string(const String first, const String second) {
+    if (first.length != second.length) {
+        return 0;
+    }
+    return strncmp(first.buffer + first.offset, second.buffer + second.offset, first.length) == 0;
+}
+
+void free_string(String dropped) {
+    free(dropped.buffer);
+}
+
