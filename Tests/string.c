@@ -40,6 +40,7 @@ int main(void) {
         assert_equal_move(slice_string(cowsay, 0, 3), STRING("cow"));
         assert_equal_move(slice_string(cowsay, 0, -3), STRING("cow"));
         assert_equal_move(slice_string(cowsay, 3, 6), STRING("say"));
+        free_string(cowsay);
     }
 
     SECTION(equal_offset) {
@@ -60,6 +61,16 @@ int main(void) {
         String cow = cut_head(&cowsay, 3);
         assert_equal_move(cow, STRING("cow"));
         assert_equal_move(cowsay, STRING("say"));
+    }
+
+    SECTION(char_at) {
+        String cowsay = STRING("cowsay");
+        char *expected = "cowsay";
+        for (int i = 0; i < 6; i++) {
+            assert_equal_move(char_at(cowsay, i), create_string(&expected[i], 1));
+            assert_equal_move(char_at(cowsay, i), char_at(cowsay, i - 6));
+        }
+        free_string(cowsay);
     }
 
     return 0;
