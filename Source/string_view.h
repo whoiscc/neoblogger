@@ -17,7 +17,7 @@ typedef struct _StringView {
 
 StringView create_view(const char *data, const unsigned int length);
 
-void append_string(String target, const StringView tail);
+void append_string(String *target, const StringView tail);
 
 StringView slice_view(const StringView view, const int start, const int end);
 

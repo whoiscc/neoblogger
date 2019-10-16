@@ -2,7 +2,12 @@
 <h3>
     <!--[ context->author ]--> | 
     <!--@ if (context->view_count) { @-->
-        viewed <!--[ context->view_count ]--> times
+        <!--@ 
+            char buffer[64];
+            int length = snprintf(buffer, 64, "%u", context->view_count);
+            StringView buffer_view = create_view(buffer, length); 
+        @-->
+        viewed <!--[ buffer_view ]--> times
     <!--@ } else { @-->
         no view
     <!--@ } @-->

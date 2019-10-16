@@ -11,12 +11,12 @@ StringView create_view(const char *data, const unsigned int length) {
     return view;
 }
 
-void append_string(String target, const StringView tail) {
-    unsigned int tail_offset = target.length;
-    target.length += tail.length;
-    target.buffer = realloc(target.buffer, sizeof(char) * target.length);
-    assert(target.buffer);
-    memcpy(target.buffer + tail_offset, tail.ref, tail.length);
+void append_string(String *target, const StringView tail) {
+    unsigned int tail_offset = target->length;
+    target->length += tail.length;
+    target->buffer = realloc(target->buffer, sizeof(char) * target->length);
+    assert(target->buffer);
+    memcpy(target->buffer + tail_offset, tail.ref, tail.length);
 }
 
 void normalize_range(
