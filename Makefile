@@ -7,7 +7,7 @@ CFLAGS += -g
 project = neoblogger
 source_dir = Source
 tests_dir = Tests
-core_modules = string
+core_modules = string_view
 modules = $(core_modules)
 
 
