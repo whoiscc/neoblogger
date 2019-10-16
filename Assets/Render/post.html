@@ -1,0 +1,11 @@
+<h1><!--[ context->post ]--></h1>
+<h3>
+    <!--[ context->author ]--> | 
+    <!--@ if (context->view_count) { @-->
+        viewed <!--[ context->view_count ]--> times
+    <!--@ } else { @-->
+        no view
+    <!--@ } @-->
+</h3>
+<!--[ context->content ]-->
+

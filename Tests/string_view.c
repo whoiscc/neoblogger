@@ -1,13 +1,10 @@
 //
 
 #include "string_view.h"
-#include <stdio.h>
-#include <assert.h>
+#include "helper.h"
 
-#define SECTION(title) printf("- " #title "\n");
 
-int main(void) {
-    printf("string_view\n");
+TEST(string_view) {
     StringView hello = VIEW("hello");
     assert(hello.ref);
     assert(hello.length == 5);
@@ -42,6 +39,4 @@ int main(void) {
             assert(equal_view(char_at(cowsay, i), char_at(cowsay, i - 6)));
         }
     }
-
-    return 0;
 }

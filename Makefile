@@ -7,7 +7,7 @@ CFLAGS += -g
 project = neoblogger
 source_dir = Source
 tests_dir = Tests
-core_modules = string_view
+core_modules = string_view file
 modules = $(core_modules)
 
 
@@ -29,6 +29,12 @@ test_executables = $(core_modules:%=test_%)
 testcases: $(test_executables)
 $(test_executables): test_%: $(tests_dir)/%.c $(static_library)
 	$(CC) $(CFLAGS) -I$(source_dir) -o $@ $+
+
+
+test: testcases
+	for test in $(test_executables); do \
+		./$$test || break; \
+	done
 
 
 clean:
