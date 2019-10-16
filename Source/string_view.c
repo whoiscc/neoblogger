@@ -25,7 +25,7 @@ void normalize_range(
 ) {
     *abs_start = start >= 0 ? start : length + start;
     *abs_end = end >= 0 ? end : length + end;
-    assert(*abs_start < *abs_end && *abs_end <= length);
+    assert(*abs_start <= *abs_end && *abs_end <= length);
 }   
 
 StringView slice_view(const StringView view, const int start, const int end) {
@@ -36,7 +36,7 @@ StringView slice_view(const StringView view, const int start, const int end) {
 
 String clone_view(const StringView view) {
     String string;
-    string.buffer = malloc(sizeof(char) * view.length);
+    string.buffer = malloc(sizeof(char) * (view.length > 0 ? view.length : 1));
     assert(string.buffer);
     memcpy(string.buffer, view.ref, view.length);
     string.length = view.length;
@@ -44,6 +44,9 @@ String clone_view(const StringView view) {
 }
 
 int search_view(const StringView haystack, const StringView needle) {
+    if (needle.length > haystack.length) {
+        return -1;
+    }
     for (int i = 0; i <= haystack.length - needle.length; i++) {
         if (strncmp(haystack.ref + i, needle.ref, needle.length) == 0) {
             return i;
