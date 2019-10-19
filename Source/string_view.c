@@ -14,9 +14,10 @@ StringView create_view(const char *data, const unsigned int length) {
 void append_string(String *target, const StringView tail) {
     unsigned int tail_offset = target->length;
     target->length += tail.length;
-    target->buffer = realloc(target->buffer, sizeof(char) * target->length);
+    target->buffer = realloc(target->buffer, sizeof(char) * (target->length + 1));
     assert(target->buffer);
     memcpy(target->buffer + tail_offset, tail.ref, tail.length);
+    target->buffer[target->length] = '\0';
 }
 
 void normalize_range(
@@ -36,9 +37,10 @@ StringView slice_view(const StringView view, const int start, const int end) {
 
 String clone_view(const StringView view) {
     String string;
-    string.buffer = malloc(sizeof(char) * (view.length > 0 ? view.length : 1));
+    string.buffer = malloc(sizeof(char) * (view.length + 1));
     assert(string.buffer);
     memcpy(string.buffer, view.ref, view.length);
+    string.buffer[view.length] = '\0';
     string.length = view.length;
     return string;
 }
