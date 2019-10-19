@@ -23,12 +23,12 @@ all: source testcases
 static_library = lib$(project).a
 core_source_objects = $(core_modules:%=$(source_dir)/%.o)
 source_objects = $(modules:%=$(source_dir)/%.o)
-render_source_objects = $(render_modules:%=$(source_dir)/render_%.o)
+render_source_objects = $(render_modules:%=$(source_dir)/$(render_dir)/%.o)
 source_objects += $(render_source_objects)
 source: $(static_library)
 $(static_library): $(source_objects)
 	$(AR) rc $@ $+
-$(source_dir)/render_%.c: $(assets_dir)/$(render_dir)/%.html $(gen_render_exe)
+$(source_dir)/$(render_dir)/%.c: $(assets_dir)/$(render_dir)/%.html $(gen_render_exe)
 	./$(gen_render_exe) $< $@ $(basename $(notdir $<))
 source_deps = $(source_objects:%.o=%.d)
 include $(source_deps)

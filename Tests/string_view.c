@@ -54,3 +54,4 @@ TEST(string_view) {
         free_string(quoted);
     }
 }
+

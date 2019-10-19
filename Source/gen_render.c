@@ -22,8 +22,11 @@ void append_quoted(String *output, const StringView snippet, int newline_ended) 
 }
 
 void append_append_stat(String *output, const StringView snippet) {
-    append_string(output, VIEW("    append_string(&result, VIEW(\n"));
-    StringView rest_snippet = slice_view(snippet, 0, snippet.length);
+    append_string(output, VIEW("    append_string(&result, VIEW("));
+    String quoted_snippet = quote_view(snippet);
+    append_string(output, as_view(quoted_snippet));
+    free_string(quoted_snippet);
+    /* StringView rest_snippet = slice_view(snippet, 0, snippet.length);
     while (rest_snippet.length) {
         int next_newline = search_view(rest_snippet, VIEW("\n"));
         if (next_newline == -1) {
@@ -33,8 +36,8 @@ void append_append_stat(String *output, const StringView snippet) {
         StringView this_line = slice_view(rest_snippet, 0, next_newline);
         rest_snippet = slice_view(rest_snippet, next_newline + 1, rest_snippet.length);
         append_quoted(output, this_line, 1);
-    }
-    append_string(output, VIEW("    ));\n"));
+    } */
+    append_string(output, VIEW("));\n"));
 }
 
 int append_render_body(String *output, const StringView input) {
@@ -66,18 +69,16 @@ int main(int argc, char *argv[]) {
 
     String input = read_file(input_filename);
     //
-    String output = clone_view(VIEW(
-        "#include \"string_view.h\"\n"
-        "#include \"context.h\"\n"
-        "#include <stdio.h>"
+    StringView output_template = VIEW(
+        "#include \"@@module_name@@.h\"\n"
+        "#include \"../string_view.h\"\n"
+        "#include \"../render.h\"\n"
+        "#include <stdio.h>\n"
         "\n"
-        "String render_"
-    ));
-    append_string(&output, module_name);
-    append_string(&output, VIEW(
-        "(Context context) {\n"
+        "String render_@@module_name@@(CONTEXT_TYPE(@@module_name@@) *context) {\n"
         "    String result = clone_view(VIEW(\"\"));\n"
-    ));
+    );
+    String output = replace_view(output_template, VIEW("@@module_name@@"), module_name);
     assert(append_render_body(&output, as_view(input)) == 0);
     append_string(&output, VIEW(
         "    return result;\n"
