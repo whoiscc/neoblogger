@@ -38,4 +38,8 @@ int equal_view(const StringView first, const StringView second);
 
 void free_string(String dropped);
 
+String replace_view(const StringView original, const StringView pattern, const StringView replaced);
+
+String quote_view(const StringView view);
+
 #endif

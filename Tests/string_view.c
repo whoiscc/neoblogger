@@ -39,4 +39,18 @@ TEST(string_view) {
             assert(equal_view(char_at(cowsay, i), char_at(cowsay, i - 6)));
         }
     }
+
+    SECTION(replace) {
+        StringView original = VIEW("My name is cowsay, cowsay is my name.");
+        String replaced = replace_view(original, VIEW("cowsay"), VIEW("catsay"));
+        assert(equal_view(as_view(replaced), VIEW("My name is catsay, catsay is my name.")));
+        free_string(replaced);
+    }
+
+    SECTION(quote) {
+        StringView original = VIEW("The symbol \\ is called backslash.");
+        String quoted = quote_view(original);
+        assert(equal_view(as_view(quoted), VIEW("The symbol \\\\ is called backslash.")));
+        free_string(quoted);
+    }
 }
