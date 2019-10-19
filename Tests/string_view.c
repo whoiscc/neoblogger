@@ -48,9 +48,9 @@ TEST(string_view) {
     }
 
     SECTION(quote) {
-        StringView original = VIEW("The symbol \\ is called backslash.");
+        StringView original = VIEW("The symbol \'\\\' is called \"backslash\".");
         String quoted = quote_view(original);
-        assert(equal_view(as_view(quoted), VIEW("The symbol \\\\ is called backslash.")));
+        assert(equal_view(as_view(quoted), VIEW("\"The symbol \\\'\\\\\\\' is called \\\"backslash\\\".\"")));
         free_string(quoted);
     }
 }

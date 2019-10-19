@@ -99,6 +99,9 @@ String quote_view(const StringView original) {
         StringView replaced;
     } replace_pair[] = {
         { VIEW("\\"), VIEW("\\\\") },
+        { VIEW("\n"), VIEW("\\n") },
+        { VIEW("\""), VIEW("\\\"") },
+        { VIEW("\'"), VIEW("\\\'") },
         { VIEW(""), VIEW("") }
     };
 
@@ -110,6 +113,10 @@ String quote_view(const StringView original) {
         result = replace_result;
         i += 1;
     }
-    return result;
+    String with_quote = clone_view(VIEW("\""));
+    append_string(&with_quote, as_view(result));
+    append_string(&with_quote, VIEW("\""));
+    free_string(result);
+    return with_quote;
 }
 
