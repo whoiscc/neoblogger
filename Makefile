@@ -15,6 +15,7 @@ render_dir = Render
 assets_dir = Assets
 gen_render_exe = gen_render
 gen_render_main = gen_render
+render_base = base.html
 
 
 all: source testcases
@@ -28,8 +29,8 @@ source_objects += $(render_source_objects)
 source: $(static_library)
 $(static_library): $(source_objects)
 	$(AR) rc $@ $+
-$(source_dir)/$(render_dir)/%.c: $(assets_dir)/$(render_dir)/%.html $(gen_render_exe)
-	./$(gen_render_exe) $< $@ $(basename $(notdir $<))
+$(source_dir)/$(render_dir)/%.c: $(assets_dir)/$(render_dir)/$(render_base) $(assets_dir)/$(render_dir)/%/*.html $(gen_render_exe)
+	./$(gen_render_exe) $(basename $(notdir $@)) $(render_base) $(assets_dir)/$(render_dir) $@
 source_deps = $(source_objects:%.o=%.d)
 include $(source_deps)
 %.d: %.c
@@ -55,6 +56,6 @@ clean:
 	-$(RM) $(source_deps)
 	-$(RM) $(static_library)
 	-$(RM) $(test_executables)
-	-$(RM) $(render_modules:%=$(source_dir)/render_%.c)
+	-$(RM) $(render_modules:%=$(source_dir)/$(render_dir)/%.c)
 	-$(RM) $(gen_render_exe) $(source_dir)/$(gen_render_main).o
 

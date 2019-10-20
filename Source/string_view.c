@@ -120,3 +120,28 @@ String quote_view(const StringView original) {
     return with_quote;
 }
 
+SplitViewIter split_view(const StringView view, const StringView delimiter) {
+    SplitViewIter iter = {
+        .rest = slice_view(view, 0, view.length),
+        .delimiter = delimiter,
+        .stop = 0
+    };
+    return iter;
+}
+
+int iter_split_view(SplitViewIter *iter) {
+    if (iter->stop) {
+        return 0;
+    }
+    int split_index = search_view(iter->rest, iter->delimiter);
+    if (split_index == -1) {
+        iter->part = iter->rest;
+        iter->stop = 1;
+    } else {
+        iter->part = slice_view(iter->rest, 0, split_index);
+        iter->rest = slice_view(
+            iter->rest, split_index + iter->delimiter.length, iter->rest.length);
+    }
+    return 1;
+}
+

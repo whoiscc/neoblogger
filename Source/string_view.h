@@ -2,6 +2,9 @@
 #ifndef NEOBLOGGER_SOURCE_STRING_VIEW_H
 #define NEOBLOGGER_SOURCE_STRING_VIEW_H
 
+#include <assert.h>
+
+
 typedef struct _String {
     char *buffer;
     unsigned int length;
@@ -38,8 +41,41 @@ int equal_view(const StringView first, const StringView second);
 
 void free_string(String dropped);
 
-String replace_view(const StringView original, const StringView pattern, const StringView replaced);
+String replace_view(
+    const StringView original, 
+    const StringView pattern, 
+    const StringView replaced
+);
 
 String quote_view(const StringView view);
+
+typedef struct _SplitViewIter {
+    StringView rest;
+    const StringView delimiter;
+    int stop;
+    StringView part;
+} SplitViewIter;
+
+SplitViewIter split_view(const StringView view, const StringView delimiter);
+int iter_split_view(SplitViewIter *iter);
+
+static inline String indent_view(const StringView view, const unsigned int level) {
+    assert(level == 2 || level == 4);
+    StringView level_view = level == 2 ? VIEW("  ") : VIEW("    ");
+    String result = clone_view(VIEW(""));
+    int first_time = 1;
+    for (
+        SplitViewIter iter = split_view(view, VIEW("\n"));
+        iter_split_view(&iter);
+    ) {
+        if (!first_time) {
+            append_string(&result, VIEW("\n"));
+        }
+        first_time = 0;
+        append_string(&result, level_view);
+        append_string(&result, iter.part);
+    }
+    return result;
+}
 
 #endif

@@ -53,5 +53,42 @@ TEST(string_view) {
         assert(equal_view(as_view(quoted), VIEW("\"The symbol \\\'\\\\\\\' is called \\\"backslash\\\".\"")));
         free_string(quoted);
     }
+
+    SECTION(split) {
+        int i = 0;
+        StringView expected[] = { VIEW("How"), VIEW("are"), VIEW("you?") };
+        for (
+            SplitViewIter iter = split_view(VIEW("How are you?"), VIEW(" "));
+            iter_split_view(&iter);
+        ) {
+            assert(equal_view(iter.part, expected[i]));
+            i += 1;
+        }
+    }
+    
+    SECTION(split_empty) {
+        int i = 0;
+        StringView expected[] = { VIEW("I\'m"), VIEW(""), VIEW("fine."), VIEW("") };
+        for (
+            SplitViewIter iter = split_view(VIEW("I\'m  fine. "), VIEW(" "));
+            iter_split_view(&iter);
+        ) {
+            assert(equal_view(iter.part, expected[i]));
+            i += 1;
+        }
+    }
+
+    SECTION(indent) {
+        String result = indent_view(VIEW(
+            "int a = 40, b = 2, c;\n"
+            "c = a + b;\n"
+        ), 2);
+        assert(equal_view(as_view(result), VIEW(
+            "  int a = 40, b = 2, c;\n"
+            "  c = a + b;\n"
+            "  "
+        )));
+        free_string(result);
+    }
 }
 

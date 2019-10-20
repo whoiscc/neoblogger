@@ -1,0 +1,16 @@
+<h1><!--@ post @--></h1>
+<h3>
+    <!--@ author @--> | 
+    <!--$ if (@view_count@) { $-->
+        <!--$
+            char buffer[64];
+            int length = snprintf(buffer, 64, "%u", context->view_count);
+            StringView buffer_view = create_view(buffer, length); 
+        $-->
+        viewed <!--@ buffer_view @--> times
+    <!--$ } else { $-->
+        no view
+    <!--$ } $-->
+</h3>
+<!--@ content @-->
+

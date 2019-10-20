@@ -62,32 +62,21 @@ int append_render_body(String *output, const StringView input) {
 }
 
 int main(int argc, char *argv[]) {
-    assert(argc > 3);
-    StringView input_filename = from_cstr(argv[1]);
-    StringView output_filename = from_cstr(argv[2]);
-    StringView module_name = from_cstr(argv[3]);
+    assert(argc > 4);
+    StringView module_name = from_cstr(argv[1]);
+    StringView base_filename = from_cstr(argv[2]);
+    StringView render_assets_dir = from_cstr(argv[3]);
+    StringView output_filename = from_cstr(argv[4]);
 
-    String input = read_file(input_filename);
+    String full_base_filename = clone_view(render_assets_dir);
+    append_string(&full_base_filename, VIEW("/"));
+    append_string(&full_base_filename, base_filename);
+    String base_content = read_file(as_view(full_base_filename));
+    free_string(full_base_filename);
+
     //
-    StringView output_template = VIEW(
-        "#include \"@@module_name@@.h\"\n"
-        "#include \"../string_view.h\"\n"
-        "#include \"../render.h\"\n"
-        "#include <stdio.h>\n"
-        "\n"
-        "String render_@@module_name@@(CONTEXT_TYPE(@@module_name@@) *context) {\n"
-        "    String result = clone_view(VIEW(\"\"));\n"
-    );
-    String output = replace_view(output_template, VIEW("@@module_name@@"), module_name);
-    assert(append_render_body(&output, as_view(input)) == 0);
-    append_string(&output, VIEW(
-        "    return result;\n"
-        "}\n"
-    ));
-
-    assert(write_file(output_filename, as_view(output)) == 0);
-    free_string(input);
-    free_string(output);
+    write_file(output_filename, VIEW(""));
+    free_string(base_content);
     return 0;
 }
 
