@@ -41,12 +41,6 @@ int equal_view(const StringView first, const StringView second);
 
 void free_string(String dropped);
 
-String replace_view(
-    const StringView original, 
-    const StringView pattern, 
-    const StringView replaced
-);
-
 String quote_view(const StringView view);
 
 typedef struct _SplitViewIter {
@@ -58,6 +52,26 @@ typedef struct _SplitViewIter {
 
 SplitViewIter split_view(const StringView view, const StringView delimiter);
 int iter_split_view(SplitViewIter *iter);
+
+static inline String replace_view(
+    const StringView original,
+    const StringView pattern,
+    const StringView replaced
+) {
+    String result = clone_view(VIEW(""));
+    int first_time = 1;
+    for (
+        SplitViewIter iter = split_view(original, pattern);
+        iter_split_view(&iter);
+    ) {
+        if (!first_time) {
+            append_string(&result, replaced);
+        }
+        first_time = 0;
+        append_string(&result, iter.part);
+    }
+    return result;
+}
 
 static inline String indent_view(const StringView view, const unsigned int level) {
     assert(level == 2 || level == 4);

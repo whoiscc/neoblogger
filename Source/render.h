@@ -6,7 +6,9 @@
 
 #define CONTEXT_TYPE(name) Context_##name
 
+#define CONTEXT context
+
 #define DECLARE_RENDER(name) \
-    String render_##name(CONTEXT_TYPE(name) *context);
+    String render_##name(CONTEXT_TYPE(name) *CONTEXT)
 
 #endif

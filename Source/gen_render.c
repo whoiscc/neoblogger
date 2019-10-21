@@ -12,53 +12,47 @@ const StringView from_cstr(const char *cstr) {
     return view;
 }
 
-void append_quoted(String *output, const StringView snippet, int newline_ended) {
-    append_string(output, VIEW("        \""));
-    append_string(output, snippet);
-    if (newline_ended) {
-        append_string(output, VIEW("\\n"));
+String join_path(const StringView dir, const StringView file) {
+    String joined = clone_view(dir);
+    if (!equal_view(char_at(as_view(joined), -1), VIEW("/"))) {
+        append_string(&joined, VIEW("/"));
     }
-    append_string(output, VIEW("\"\n"));
+    append_string(&joined, file);
+    return joined;
 }
 
-void append_append_stat(String *output, const StringView snippet) {
-    append_string(output, VIEW("    append_string(&result, VIEW("));
-    String quoted_snippet = quote_view(snippet);
-    append_string(output, as_view(quoted_snippet));
-    free_string(quoted_snippet);
-    /* StringView rest_snippet = slice_view(snippet, 0, snippet.length);
-    while (rest_snippet.length) {
-        int next_newline = search_view(rest_snippet, VIEW("\n"));
-        if (next_newline == -1) {
-            append_quoted(output, rest_snippet, 0);
+String generate_append_statement(const StringView part) {
+    StringView append_template = VIEW("append_string(&@@result@@, VIEW(@@quoted_part@@));\n");
+    String quoted_part = quote_view(part);
+    String append_statement = replace_view(append_template, VIEW("@@quoted_part@@"), as_view(quoted_part));
+    free_string(quoted_part);
+    return append_statement;
+}
+
+String generate(const StringView template) {
+    StringView rest = slice_view(template, 0, template.length);
+    String result = clone_view(VIEW(""));
+    while (rest.length) {
+        int next_comment = search_view(rest, VIEW("<!--"));
+        StringView current;
+        if (next_comment == -1) {
+            current = rest;
+        } else {
+            current = slice_view(rest, 0, next_comment);
+        }
+        String append_statement = generate_append_statement(current);
+        append_string(&result, as_view(append_statement));
+        free_string(append_statement);
+        if (next_comment == -1) {
             break;
         }
-        StringView this_line = slice_view(rest_snippet, 0, next_newline);
-        rest_snippet = slice_view(rest_snippet, next_newline + 1, rest_snippet.length);
-        append_quoted(output, this_line, 1);
-    } */
-    append_string(output, VIEW("));\n"));
-}
-
-int append_render_body(String *output, const StringView input) {
-    StringView rest_input = slice_view(input, 0, input.length);
-    while (rest_input.length) {
-        int next_comment = search_view(rest_input, VIEW("<!--"));
-        if (next_comment == -1) {
-            append_append_stat(output, rest_input);
-            return 0;
-        }
-        StringView before_comment = slice_view(rest_input, 0, next_comment);
-        append_append_stat(output, before_comment);
-        rest_input = slice_view(rest_input, next_comment, rest_input.length);
+        rest = slice_view(rest, next_comment, rest.length);
         //
-        int comment_closer = search_view(rest_input, VIEW("-->"));
-        if (comment_closer == -1) {
-            return 1;
-        }
-        rest_input = slice_view(rest_input, comment_closer + 3, rest_input.length);
+        int comment_end = search_view(rest, VIEW("-->"));
+        assert(comment_end != -1);
+        rest = slice_view(rest, comment_end + 3, rest.length);
     }
-    return 0;
+    return result;
 }
 
 int main(int argc, char *argv[]) {
@@ -68,14 +62,50 @@ int main(int argc, char *argv[]) {
     StringView render_assets_dir = from_cstr(argv[3]);
     StringView output_filename = from_cstr(argv[4]);
 
-    String full_base_filename = clone_view(render_assets_dir);
-    append_string(&full_base_filename, VIEW("/"));
-    append_string(&full_base_filename, base_filename);
+    String full_base_filename = join_path(render_assets_dir, base_filename);
+    printf("[gen_render] base: %s\n", full_base_filename.buffer);
     String base_content = read_file(as_view(full_base_filename));
     free_string(full_base_filename);
 
-    //
-    write_file(output_filename, VIEW(""));
+    String result = generate(as_view(base_content));
+    StringView template = VIEW(
+        "#include \"../render.h\"\n"
+        "#include \"../string_view.h\"\n"
+        "#include \"@@module_name@@.h\"\n"
+        "\n"
+        "DECLARE_RENDER(@@module_name@@) {\n"
+        "@@body@@\n"
+        "}\n"
+    );
+    StringView body_template = VIEW(
+        "String @@result@@ = clone_view(VIEW(\"\"));\n"
+        "@@main_body@@\n"
+        "return @@result@@;\n"
+    );
+    String body = replace_view(body_template, VIEW("@@main_body@@"), as_view(result));
+    free_string(result);
+    String indent_body = indent_view(as_view(body), 4);
+    free_string(body);
+    
+    struct {
+        StringView tag;
+        StringView content;
+    } replace_list[] = {
+        { VIEW("@@body@@"), as_view(indent_body) },
+        { VIEW("@@module_name@@"), module_name },
+        { VIEW("@@result@@"), VIEW("result") },
+        { VIEW(""), VIEW("") }
+    };
+
+    String output = clone_view(template);
+    for (int i = 0; replace_list[i].tag.length; i++) {
+        String output_temp = replace_view(as_view(output), replace_list[i].tag, replace_list[i].content);
+        free_string(output);
+        output = output_temp;
+    }
+    free_string(indent_body);
+    
+    write_file(output_filename, as_view(output));
     free_string(base_content);
     return 0;
 }

@@ -68,31 +68,6 @@ void free_string(String dropped) {
     free(dropped.buffer);
 }
 
-String replace_view(
-    const StringView original, 
-    const StringView pattern,
-    const StringView replaced
-) {
-    String result = clone_view(VIEW(""));
-    StringView rest = slice_view(original, 0, original.length);
-    while (1) {
-        int next_pattern_start = search_view(rest, pattern);
-        if (next_pattern_start == -1) {
-            next_pattern_start = rest.length;
-        }
-        StringView current = slice_view(rest, 0, next_pattern_start);
-        append_string(&result, current);
-        if (next_pattern_start != rest.length) {
-            append_string(&result, replaced);
-            rest = slice_view(
-                rest, next_pattern_start + pattern.length, rest.length);
-        } else {
-            break;
-        }
-    }
-    return result;
-}
-
 String quote_view(const StringView original) {
     struct {
         StringView pattern;

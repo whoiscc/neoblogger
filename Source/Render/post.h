@@ -11,6 +11,6 @@ typedef struct _PostContext {
     StringView rendered_content;
 } CONTEXT_TYPE(post);
 
-DECLARE_RENDER(post)
+DECLARE_RENDER(post);
 
 #endif
