@@ -18,6 +18,7 @@ gen_render_main = gen_render
 render_base = base.html
 
 
+.PHONY: all
 all: source testcases
 
 
@@ -45,12 +46,14 @@ $(test_executables): test_%: $(tests_dir)/%.c $(static_library)
 	$(CC) $(CFLAGS) -I$(source_dir) -o $@ $+
 
 
+.PHONY: test
 test: testcases
 	for test in $(test_executables); do \
 		./$$test || break; \
 	done
 
 
+.PHONY: clean
 clean:
 	-$(RM) $(source_objects)
 	-$(RM) $(source_deps)
