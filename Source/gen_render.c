@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
     free_string(full_base_filename);
 
     String result = generate(as_view(base_content));
+    free_string(base_content);
     StringView template = VIEW(
         "#include \"../render.h\"\n"
         "#include \"../string_view.h\"\n"
@@ -106,7 +107,7 @@ int main(int argc, char *argv[]) {
     free_string(indent_body);
     
     write_file(output_filename, as_view(output));
-    free_string(base_content);
+    free_string(output);
     return 0;
 }
 
